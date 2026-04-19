@@ -1,12 +1,13 @@
 """
-C3D → OpenSim Converter
-========================
-Complete pipeline to convert C3D biomechanics files to OpenSim-compatible
-.trc (marker) and .mot (ground reaction force) files.
+C3D (6-Channel) → OpenSim Converter
+====================================
+Complete pipeline to convert C3D biomechanics files with 6-channel force data
+(Fx, Fy, Fz, Mx, My, Mz) to OpenSim-compatible .trc (marker) and .mot
+(ground reaction force) files.
 
 Processing Steps:
   1. Read C3D file with ezc3d
-  2. Compute Kistler Type 3 → Type 2 force-plate data
+  2. Compute COP and free moment from 6-channel force data
   3. Transform force data: plate-local → lab global
   4. Transform all data:   lab global  → OpenSim (Y-up)
   5. Restructure force arrays for OpenSim format
@@ -16,7 +17,7 @@ Processing Steps:
   9. Write .trc and .mot output files
 
 Usage:
-  python c3d_to_opensim.py <c3d_file> [output_dir]
+  python c3d6_to_opensim.py <c3d_file> [output_dir]
 """
 
 import os
@@ -27,7 +28,6 @@ import pandas as pd
 
 from transform_utils import (
     rotation_matrix, apply_rotation,
-    compute_kistler_channel8,
     compute_kistler_channel6,
     plate_local_to_lab,
     lab_to_opensim_force,
@@ -38,23 +38,23 @@ from transform_utils import (
     write_mot,
 )
 
-#去除前缀的函数
+
 def _strip_label_prefix(label):
     """Remove any prefix before a colon (e.g. 'Trial:R.ASIS' → 'R.ASIS')."""
     return label.split(':')[-1] if ':' in label else label
 
 
-def process_c3d(c3d_path, output_dir,
-                marker_cutoff=6.0,
-                force_cutoff=50.0,
-                stance_threshold=30.0,
-                stance_pad_frames=25):
+def process_c3d6(c3d_path, output_dir,
+                 marker_cutoff=6.0,
+                 force_cutoff=50.0,
+                 stance_threshold=30.0,
+                 stance_pad_frames=25):
     """
-    Full pipeline: C3D → OpenSim .trc + .mot
+    Full pipeline: C3D (6-channel) → OpenSim .trc + .mot
 
     Parameters
     ----------
-    c3d_path         : str   — input C3D file
+    c3d_path         : str   — input C3D file with 6-channel force data
     output_dir       : str   — output directory
     marker_cutoff    : float — low-pass cutoff for markers (Hz, default 6)
     force_cutoff     : float — low-pass cutoff for forces  (Hz, default 50)
@@ -69,14 +69,14 @@ def process_c3d(c3d_path, output_dir,
     os.makedirs(output_dir, exist_ok=True)
 
     print("=" * 60)
-    print(f"  C3D -> OpenSim Converter")
+    print(f"  C3D (6-Channel) -> OpenSim Converter")
     print(f"  Input : {c3d_path}")
     print(f"  Output: {output_dir}")
     print("=" * 60)
 
-    # ══════════════════════════════════════════════════════════════════════════
+    # ══════════════════════
     #  Step 1 — Read C3D file
-    # ══════════════════════════════════════════════════════════════════════════
+    # ══════════════════════
     print("\n[Step 1] 读取 C3D 文件 ...")
 
     c = ezc3d.c3d(c3d_path)
@@ -114,27 +114,25 @@ def process_c3d(c3d_path, output_dir,
 
     print(f"  Forces  : {n_plates} plate(s),  {n_analog_frames} frames @ {analog_rate} Hz")
 
-    # ══════════════════════════════════════════════════════════════════════════
-    #  Step 2 — Kistler Type 3 → Type 2
-    # ══════════════════════════════════════════════════════════════════════════
-    print("\n[Step 2] Kistler Type 3 -> Type 2 力台计算 ...")
+    # ══════════════════════
+    #  Step 2 — 6-channel Force Data Processing
+    # ══════════════════════
+    print("\n[Step 2] 6通道力台数据处理 (Fx, Fy, Fz, Mx, My, Mz) ...")
 
     plate_type2 = []
     for pi in range(n_plates):
         ch_idx = channels[:, pi].astype(int) - 1
-        ch8    = analog_data[ch_idx, :]
+        ch6    = analog_data[ch_idx, :]
 
-        b   = float(origin[0, pi])
-        a   = float(origin[1, pi])
         az0 = float(origin[2, pi])
 
-        t2 = compute_kistler_channel8(ch8, a, b, az0)
+        t2 = compute_kistler_channel6(ch6, az0)
         plate_type2.append(t2)
-        print(f"  FP{pi+1}: a={a:.0f} mm, b={b:.0f} mm, az0={az0:.0f} mm")
+        print(f"  FP{pi+1}: az0={az0:.0f} mm")
 
-    # ══════════════════════════════════════════════════════════════════════════
+    # ══════════════════════
     #  Step 3 — Plate-local → Lab global
-    # ══════════════════════════════════════════════════════════════════════════
+    # ══════════════════════
     print("\n[Step 3] 力台本地坐标系 -> 实验室坐标系 ...")
 
     plate_lab = []
@@ -147,9 +145,9 @@ def process_c3d(c3d_path, output_dir,
         cy = np.mean(plate_corners[1, :])
         print(f"  FP{pi+1}: plate centre = ({cx:.1f}, {cy:.1f}) mm")
 
-    # ══════════════════════════════════════════════════════════════════════════
+    # ══════════════════════
     #  Step 4 — Lab global → OpenSim (Y-up)
-    # ══════════════════════════════════════════════════════════════════════════
+    # ══════════════════════
     print("\n[Step 4] 实验室坐标系 -> OpenSim 坐标系 (Y-up) ...")
 
     # Rotation matrix: Lab(X-fwd, Y-left, Z-up) → OpenSim(X-fwd, Y-up, Z-right)
@@ -173,9 +171,9 @@ def process_c3d(c3d_path, output_dir,
         plate_os.append(os_data)
     print(f"  力台旋转完成: {n_plates} plate(s)")
 
-    # ══════════════════════════════════════════════════════════════════════════
+    # ══════════════════════
     #  Step 5 + 6 — Restructure force arrays & unit conversion
-    # ══════════════════════════════════════════════════════════════════════════
+    # ══════════════════════
     print("\n[Step 5-6] 力台数据重构 & 单位转换 (COP->m, Torque->N*m) ...")
 
     # Build per-plate structured arrays
@@ -203,9 +201,9 @@ def process_c3d(c3d_path, output_dir,
         structured_plates.append(dict(force=force, cop=cop, torque=torque))
         print(f"  FP{pi+1}: {n} frames - COP [m], Torque [N*m]")
 
-    # ══════════════════════════════════════════════════════════════════════════
+    # ══════════════════════
     #  Step 7 — Filter & resample
-    # ══════════════════════════════════════════════════════════════════════════
+    # ══════════════════════
     print("\n[Step 7] 滤波 & 重采样 ...")
 
     # 7a — Filter force data at analog_rate
@@ -242,9 +240,9 @@ def process_c3d(c3d_path, output_dir,
 
     print(f"  [OK] 滤波完成")
 
-    # ══════════════════════════════════════════════════════════════════════════
+    # ══════════════════════
     #  Step 8 — Stance phase detection & extraction
-    # ══════════════════════════════════════════════════════════════════════════
+    # ══════════════════════
     print("\n[Step 8] Stance 阶段检测 & 截取 ...")
 
     # Auto-detect which plate has the strongest vertical contact
@@ -279,25 +277,25 @@ def process_c3d(c3d_path, output_dir,
         rel_to = to_idx - start_idx
 
         for pi in range(n_plates):
-            # 1. 归零 COP (ax, ay) 
+            # 1. 归零 COP (ax, ay)
             # 在 0 到 rel_hs 帧，以及 rel_to 帧之后的数据设为 0
             structured_plates[pi]['cop'][:rel_hs, :] = 0
             structured_plates[pi]['cop'][rel_to+1:, :] = 0
 
-            # 2. 归零 自由力矩 (Tz) 
+            # 2. 归零 自由力矩 (Tz)
             structured_plates[pi]['torque'][:rel_hs, :] = 0
             structured_plates[pi]['torque'][rel_to+1:, :] = 0
 
-            # 3. 归零 水平力 (Fx, Fy) 
+            # 3. 归零 水平力 (Fx, Fy)
             # 假设 force 数组的列顺序是 [Fx, Fy, Fz]
             # 我们只对第 0 列 (Fx) 和 第 1 列 (Fy) 进行归零，保留垂直力 Fz 的原始噪声或趋势
             structured_plates[pi]['force'][:rel_hs, :] = 0
             structured_plates[pi]['force'][rel_to+1:, :] = 0
-            
+
             # 可选：如果你希望 Fz 在非接触期间也绝对为 0
             # structured_plates[pi]['force'][:rel_hs, 2] = 0
             # structured_plates[pi]['force'][rel_to+1:, 2] = 0
-        
+
         # Cut markers
         markers_os = markers_os[:, :, start_idx:end_idx+1]
 
@@ -322,9 +320,9 @@ def process_c3d(c3d_path, output_dir,
             total_frames      = n_cut,
         )
 
-    # ══════════════════════════════════════════════════════════════════════════
+    # ══════════════════════
     #  Step 9 — Write output files
-    # ══════════════════════════════════════════════════════════════════════════
+    # ══════════════════════
     print("\n[Step 9] 写入 OpenSim 文件 ...")
 
     n_out_frames = markers_os.shape[2]
@@ -351,20 +349,20 @@ def process_c3d(c3d_path, output_dir,
     )
 
     # 9d — Write stance-info CSV
-    csv_path = os.path.join(c3d_path, f"cut_records.csv")
+    csv_path = os.path.join(output_dir, f"cut_records.csv")
     file_exists = os.path.isfile(csv_path)
     pd.DataFrame([stance_info]).to_csv(
-    csv_path, 
-    mode='a', 
-    index=False, 
-    header=not file_exists,
-    encoding='utf-8-sig' # 解决中文乱码逻辑（可选）
-   )
+        csv_path,
+        mode='a',
+        index=False,
+        header=not file_exists,
+        encoding='utf-8-sig' # 解决中文乱码逻辑（可选）
+       )
     print(f"  [OK] 截取记录 -> {csv_path}")
 
     # ── Summary ──────────────────────────────────────────────────────────────
     print("\n" + "=" * 60)
-    print("  [DONE] C3D -> OpenSim Done!")
+    print("  [DONE] C3D (6-Channel) -> OpenSim Done!")
     print(f"  .trc : {trc_path}")
     print(f"  .mot : {mot_path}")
     print(f"  记录 : {csv_path}")
@@ -382,7 +380,7 @@ def process_c3d(c3d_path, output_dir,
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print("Usage: python c3d_to_opensim.py <c3d_file> [output_dir]")
+        print("Usage: python c3d6_to_opensim.py <c3d_file> [output_dir]")
         sys.exit(1)
 
     c3d_file = sys.argv[1]
@@ -390,4 +388,4 @@ if __name__ == '__main__':
         os.path.dirname(c3d_file), 'output'
     )
 
-    process_c3d(c3d_file, out_dir)
+    process_c3d6(c3d_file, out_dir)

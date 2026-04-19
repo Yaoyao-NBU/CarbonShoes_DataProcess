@@ -93,7 +93,7 @@ def apply_rotation(data_3xN, R):
 FZ_THRESHOLD = 20.0   # N — COP / Tz set to 0 when |Fz| below this
 
 
-def compute_kistler_type2(channels_8, a, b, az0):
+def compute_kistler_channel8(channels_8, a, b, az0):
     """
     Compute Type 2 force-plate data from 8-channel Kistler Type 3 raw data.
 
@@ -132,6 +132,44 @@ def compute_kistler_type2(channels_8, a, b, az0):
         ay = np.where(valid,  Mxp / Fz_raw, 0.0)
 
     # Free vertical moment
+    Tz_raw = Mz - Fy_raw * ax + Fx_raw * ay
+    Tz = np.where(valid, -Tz_raw, 0.0)
+
+    # Negate to get ground reaction force (from ground ON the person)
+    return dict(Fx=-Fx_raw, Fy=-Fy_raw, Fz=-Fz_raw, ax=ax, ay=ay, Tz=Tz)
+
+
+def compute_kistler_channel6(channels_6 , az0):
+    """
+    Compute COP and free moment from 6-channel force-plate data (Fx, Fy, Fz, Mx, My, Mz).
+
+    The input data is already in Kistler plate-local coordinates:
+      X=right+, Y=posterior+, Z=down+
+
+    Parameters
+    ----------
+    channels_6 : ndarray (6, N)
+        [Fx, Fy, Fz, Mx, My, Mz] — forces and moments in Kistler local coords
+
+    Returns
+    -------
+    dict  Fx, Fy, Fz  (N, ground reaction forces),
+          ax, ay      (N, mm, COP from plate centre),
+          Tz          (N, N·mm, free vertical moment)
+    """
+    Fx_raw, Fy_raw, Fz_raw, Mx, My, Mz = channels_6
+
+    Mxp = Mx + Fy_raw * az0
+    Myp = My - Fx_raw * az0
+    # COP (valid only when |Fz| ≥ threshold)
+    # Note: COP is computed from the given moments, assuming they are already
+    # at the plate surface or at the measurement reference point
+    valid = np.abs(Fz_raw) >= FZ_THRESHOLD
+    with np.errstate(invalid='ignore', divide='ignore'):
+        ax = np.where(valid, -Myp / Fz_raw, 0.0)
+        ay = np.where(valid,  Mxp / Fz_raw, 0.0)
+
+    # Free vertical moment (moment about the COP)
     Tz_raw = Mz - Fy_raw * ax + Fx_raw * ay
     Tz = np.where(valid, -Tz_raw, 0.0)
 
@@ -294,8 +332,8 @@ def detect_stance_phase(vertical_force, threshold=30.0, pad_frames=25):
     hs_idx = int(contact_indices[0])
     to_idx = int(contact_indices[-1])
 
-    start_idx = max(0, hs_idx - pad_frames)
-    end_idx   = min(len(vertical_force) - 1, to_idx + pad_frames)
+    start_idx = max(0, hs_idx - pad_frames)   #边界保护作用
+    end_idx   = min(len(vertical_force) - 1, to_idx + pad_frames)  #边界保护作用
 
     return start_idx, end_idx, hs_idx, to_idx
 
