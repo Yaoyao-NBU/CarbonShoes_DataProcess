@@ -342,8 +342,8 @@ def main():
     # 构建处理参数（使用默认值）
     process_params = {
         'marker_cutoff': 6.0,
-        'force_cutoff': 50.0,
-        'stance_threshold': 40.0,
+        'force_cutoff': 60,
+        'stance_threshold': 35.0,
         'stance_pad_frames': 25,
     }
 
