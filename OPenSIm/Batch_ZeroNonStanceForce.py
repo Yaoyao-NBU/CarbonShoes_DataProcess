@@ -2,13 +2,13 @@ import os
 import Data_ProcessFunction as DPF
 import pandas as pd
 
-source_dir = r'G:\Carbon_Plate_Shoes_Data\New_Opensim_Transform\3_try\C3D_File\rename01'
-target_dir = r'G:\Carbon_Plate_Shoes_Data\New_Opensim_Transform\3_try\C3D_File\Cut_Data'
-CSVFilname = 'Cut_Recoeds.csv'
+source_dir = r'G:\Carbon_Plate_Shoes_Data\New_Opensim_Transform\3_try\C3D_File\rename_Final_problem_data'
+target_dir = r'G:\Carbon_Plate_Shoes_Data\New_Opensim_Transform\3_try\C3D_File\Cut_Zero_NonStance_Data_Problem'
+CSVFilname = 'Cut_Recoeds_problem.csv'
 
 fs_trc = 200
 fs_sto = 200
-threshold = 30
+threshold = 45
 fz_pattern = r"2_ground_force_vy"
 records = []
 
@@ -26,15 +26,18 @@ for root, dirs, files in os.walk(source_dir):
         name, _ = os.path.splitext(sto_file)
 
         # ---------- 获取 stance 时间和帧数 ----------
-        t_start, t_end, frame_start, frame_end = DPF.get_stance_time_from_sto(
+        t_start, t_end, frame_start, frame_end, t_stance_start, t_stance_end = DPF.get_stance_time_from_sto(
             sto_path, fs=fs_sto, fz_pattern=fz_pattern, threshold=threshold
         )
-        
+
         # ---------- 截取 STO 文件 ----------
         relative_path = os.path.relpath(sto_path, source_dir)
         dst_path_sto = os.path.join(target_dir, relative_path.replace(".sto", ".sto"))
         os.makedirs(os.path.dirname(dst_path_sto), exist_ok=True)
-        DPF.cut_sto_by_time(sto_path, dst_path_sto, t_start, t_end, fs=fs_sto)
+        DPF.cut_sto_by_time(sto_path, dst_path_sto, t_start, t_end, fs=fs_sto, t_stance_start=t_stance_start, t_stance_end=t_stance_end)
+
+        # ---------- 修正 STO 文件单位 ----------
+        DPF.fix_sto_ground_force_units(dst_path_sto, dst_path_sto)
 
         # ---------- 对应 TRC 文件 ----------
         trc_path = os.path.join(root, name + ".trc")

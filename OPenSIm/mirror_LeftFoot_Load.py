@@ -69,7 +69,7 @@ def mirror_trc_in_place_by_body_center(input_path, output_path):
 # ================= 递归遍历与覆盖框架 =================
 
 # 1. 设置目标根目录路径（脚本会搜索此目录下所有的子文件夹）
-root_folder = r'G:\Carbon_Plate_Shoes_Data\New_Opensim_Transform\Mirror_Data\outdata'
+root_folder = r'G:\Carbon_Plate_Shoes_Data\New_Opensim_Transform\3_try\C3D_File\mirror_Left_footLoad\Input'
 
 print(f"开始递归处理目录: {root_folder}")
 print("-" * 50)

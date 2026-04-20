@@ -57,8 +57,8 @@ def export_with_structure(root_folder, file_extensions, remove_str, output_root)
 # ====================== 使用示例 ======================
 
 export_with_structure(
-    root_folder=r"G:\Carbon_Plate_Shoes_Data\Data_TrcAndSto\Data\ceshi\filter_File",
+    root_folder=r"G:\Carbon_Plate_Shoes_Data\New_Opensim_Transform\3_try\C3D_File\filter_File",
     file_extensions=[".trc", ".mot", ".sto"],  # 选择你想处理的后缀
     remove_str="_filtered",  # 你文件名里统一需要删除的部分
-    output_root=r"G:\Carbon_Plate_Shoes_Data\Data_TrcAndSto\Data\ceshi\filter_File\rename"
+    output_root=r"G:\Carbon_Plate_Shoes_Data\New_Opensim_Transform\3_try\C3D_File\rename01"
 )

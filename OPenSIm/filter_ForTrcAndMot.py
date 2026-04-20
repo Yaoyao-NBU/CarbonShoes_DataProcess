@@ -1,7 +1,7 @@
 import os
 import Data_ProcessFunction as DPF
-source_dir = r'G:\Carbon_Plate_Shoes_Data\Data_TrcAndSto\NoCut_Data\ceshi'
-target_dir = r'G:\Carbon_Plate_Shoes_Data\Data_TrcAndSto\NoCut_Data\ceshi\filter_File'
+source_dir = r'G:\Carbon_Plate_Shoes_Data\New_Opensim_Transform\3_try\C3D_File\rename'
+target_dir = r'G:\Carbon_Plate_Shoes_Data\New_Opensim_Transform\3_try\C3D_File\filter_File'
 
 """
 遍历 source_dir 下的所有子文件夹，
@@ -28,8 +28,7 @@ for root, dirs, files in os.walk(source_dir):
         elif file.lower().endswith(".sto"):
             dst_path = dst_path.replace(".sto", "_filtered.sto")
             print("Processing STO:", src_path)
-            DPF.filter_mot(src_path, dst_path,cutoff=50, fs=1000)##单个滤波函数用于Mot
-            DPF.remove_baseline_force_sto(dst_path,dst_path,threshold=20)
+            DPF.filter_mot(src_path, dst_path,cutoff=50, fs=200)##单个滤波函数用于Mot
 
         else:
                 # 其他文件跳过

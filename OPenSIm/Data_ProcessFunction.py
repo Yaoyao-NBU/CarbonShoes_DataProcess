@@ -319,34 +319,34 @@ def get_stance_time_from_sto(sto_path, fs=200, fz_pattern=r".*_ground_force_v[yz
     if contact.sum() == 0:
         raise ValueError("❌ 未检测到 stance（Fz 全部低于阈值）")
 
-    # --- 获取时间 ---
-    #t_start = df.loc[contact.idxmax(), time_col]
-    t_start = df.loc[contact.idxmax(), time_col] - 0.1  # 提前100ms，确保包含接触瞬间
-    
-    #t_end   = df.loc[contact[::-1].idxmax(), time_col]
-    t_end   = df.loc[contact[::-1].idxmax(), time_col] + 0.1  # 延后100ms，确保包含离地瞬间
+    # --- 获取实际 stance 时间（不含补偿） ---
+    t_stance_start = df.loc[contact.idxmax(), time_col]
+    t_stance_end = df.loc[contact[::-1].idxmax(), time_col]
+
+    # --- 获取包含补偿的时间 ---
+    t_start = t_stance_start - 0.1  # 预留前0.1秒补偿
+    t_end = t_stance_end + 0.1      # 预留后0.1秒补偿
 
     # --- 通过采样频率计算帧数 ---
-    #frame_start = int(t_start * fs) + 1
-    frame_start = int(t_start * fs) + 21
-
-
-    #frame_end   = int(t_end * fs) + 1
-    frame_end   = int(t_end * fs) + 21
+    frame_start = int(t_start * fs) + 1
+    frame_end = int(t_end * fs) + 1
 
     print(f"✓ Stance detected: {t_start:.4f} – {t_end:.4f}, frames: {frame_start} – {frame_end}")
-    return t_start, t_end, frame_start, frame_end
+    return t_start, t_end, frame_start, frame_end, t_stance_start, t_stance_end
 
 
 #####################################################截取力台文件#########################################################
-def cut_sto_by_time(sto_path, output_path, t_start, t_end, fs=None):
+def cut_sto_by_time(sto_path, output_path, t_start, t_end, fs=None, t_stance_start=None, t_stance_end=None):
     """
     按时间截取 STO 文件，并可选重新生成时间列（与 TRC 对齐）
 
+    支持将补充帧（t_stance_start之前、t_stance_end之后）的力台数据（Fx-Fz, Copx-Copz, torque）归零
+
     sto_path : 原始 STO 文件路径
     output_path : 输出截取后的 STO 文件路径
-    t_start, t_end : 截取时间范围（秒）
+    t_start, t_end : 截取时间范围（秒，含补偿）
     fs : 可选，采样频率。如果提供，会按等间隔生成时间列
+    t_stance_start, t_stance_end : 实际 stance 时间范围（不含补偿），用于确定哪些帧需要归零
     """
     import os, numpy as np, pandas as pd, re
 
@@ -379,12 +379,35 @@ def cut_sto_by_time(sto_path, output_path, t_start, t_end, fs=None):
             except ValueError:
                 pass
 
-    # --- Step5: 可选按 fs 重建时间列 ---
+    # --- Step5: 将补充帧的力数据（Fx-Fz, Copx-Copz, torque）归零 ---
+    if t_stance_start is not None and t_stance_end is not None:
+        # 找到力相关的列：ground_force_vx, ground_force_vy, ground_force_vz, ground_force_px, ground_force_py, ground_force_pz, ground_force_torque
+        force_cols = [c for c in labels if re.match(r".*ground_force_v[xyz]$", c)]  # Fx-Fz
+        cop_cols = [c for c in labels if re.match(r".*ground_force_p[xyz]$", c)]   # Copx-Copz
+        torque_cols = [c for c in labels if "torque" in c.lower()]  # torque
+
+        zero_cols = force_cols + cop_cols + torque_cols
+
+        # 将 t_stance_start 之前的补充帧归零
+        padding_mask = (df_cut[time_col] < t_stance_start)
+        for col in zero_cols:
+            if col in df_cut.columns:
+                df_cut.loc[padding_mask, col] = 0
+
+        # 将 t_stance_end 之后的补充帧归零
+        padding_mask = (df_cut[time_col] > t_stance_end)
+        for col in zero_cols:
+            if col in df_cut.columns:
+                df_cut.loc[padding_mask, col] = 0
+
+        print(f"✓ 已将补充帧的力台数据归零（时间范围: {t_start:.4f}-{t_stance_start:.4f} 和 {t_stance_end:.4f}-{t_end:.4f}）")
+
+    # --- Step6: 可选按 fs 重建时间列 ---
     n = len(df_cut)
     if fs is not None and n > 0:
         df_cut[time_col] = np.arange(n) / fs  # 从0开始等间隔生成时间列
 
-    # --- Step6: 写回文件 ---
+    # --- Step7: 写回文件 ---
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         # 写 header
@@ -457,10 +480,39 @@ def cut_trc_by_time(trc_path, output_path, t_start, t_end, fs=None):
     return output_path
 
 
-#####################################################???????#############################################################
+#####################################################修改力台单位参数#############################################################
+def fix_sto_ground_force_units(sto_path, output_path):
+    """
+    修改 STO 文件中的 ground_force_p 单位参数
+    将 ground_force_p=mm 改为 ground_force_p=m
 
+    参数:
+        sto_path (str): 原始 STO 文件路径
+        output_path (str): 输出 STO 文件路径
+    """
+    # 读取所有行
+    with open(sto_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
 
+    # 查找并修改 ground_force_p=mm 为 ground_force_p=m
+    modified = False
+    for i, line in enumerate(lines):
+        if "ground_force_p=mm" in line:
+            lines[i] = line.replace("ground_force_p=mm", "ground_force_p=m")
+            modified = True
+            print(f"✓ 第{i+1}行: ground_force_p=mm → ground_force_p=m")
 
+    if not modified:
+        print("⚠ 未找到 ground_force_p=mm，文件可能已正确")
+    else:
+        # 写回文件
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        with open(output_path, "w", encoding="utf-8", newline="") as f:
+            f.writelines(lines)
+
+        print(f"✓ 单位修正完成 → {output_path}")
+
+    return output_path
 
 
 #####################################################??????#############################################################
