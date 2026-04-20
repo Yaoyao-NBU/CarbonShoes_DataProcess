@@ -68,7 +68,8 @@ def filter_mot(input_path, output_path, cutoff=50, fs=1000):
         header_lines = [next(f) for _ in range(8)]
 
     # ---- 读取数据部分 ----
-    df = pd.read_csv(input_path, sep="\t", skiprows=8)
+    #df = pd.read_csv(input_path, sep="\t", skiprows=8)  #Mot文件就使用这个
+    df = pd.read_csv(input_path, sep="\t", skiprows=8)   #Sto文件使用这个！
 
     # 输出路径保证存在
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -515,14 +516,97 @@ def fix_sto_ground_force_units(sto_path, output_path):
     return output_path
 
 
-#####################################################??????#############################################################
+#####################################################基于Peak检测Stance时间#############################################
+def get_stance_time_from_sto_with_peak(sto_path, fs=200, fz_pattern=r".*_ground_force_v[yz]$", threshold=20, padding_frames=0):
+    """
+    从 STO 力台数据中通过 Peak 检测 stance 时间段
+    先找到中间的 Peak 值，然后向两边找阈值
+
+    参数:
+        sto_path: STO 文件路径
+        fs: 采样频率
+        fz_pattern: 垂直力列名匹配模式
+        threshold: 阈值
+        padding_frames: 补偿帧数（前后各补充）
+
+    返回:
+        t_start, t_end, frame_start, frame_end, t_stance_start, t_stance_end
+    """
+    import re, pandas as pd
+
+    # --- 读取 header ---
+    with open(sto_path, "r", encoding="utf-8") as f:
+        header_lines = [next(f) for _ in range(8)]
+        label_line = header_lines[7].strip()
+        labels = re.split(r'\s+', label_line)
+
+    # --- 读取数据 ---
+    df = pd.read_csv(
+        sto_path,
+        sep=r'\s+',
+        engine='python',
+        skiprows=8,
+        names=labels,
+        header=None
+    )
+
+    time_col = labels[0]
+    force_cols = [c for c in labels if re.match(fz_pattern, c)]
+    if not force_cols:
+        raise ValueError("❌ 未找到垂直方向 ground_force_v 列")
+
+    # --- 强制列转为数值 ---
+    for col in force_cols:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+
+    # --- 计算垂直力 ---
+    fz = df[force_cols].abs().max(axis=1)
+
+    # --- 找到 Peak 位置（最大值索引）---
+    peak_idx = fz.idxmax()
+    peak_value = fz[peak_idx]
+
+    if peak_value <= threshold:
+        raise ValueError("❌ Peak 值低于阈值，无法检测 stance")
+
+    # --- 从 Peak 向左搜索第一个小于阈值的点 ---
+    left_idx = peak_idx
+    for i in range(peak_idx, -1, -1):
+        if fz[i] < threshold:
+            left_idx = i
+            break
+
+    # --- 从 Peak 向右搜索第一个小于阈值的点 ---
+    right_idx = peak_idx
+    for i in range(peak_idx, len(fz)):
+        if fz[i] < threshold:
+            right_idx = i
+            break
+
+    # --- 获取实际 stance 时间（不含补偿）---
+    t_stance_start = df.loc[left_idx, time_col]
+    t_stance_end = df.loc[right_idx, time_col]
+
+    # --- 计算补偿时间 ---
+    padding_time = padding_frames / fs
+    t_start = t_stance_start - padding_time
+    t_end = t_stance_end + padding_time
+
+    # --- 通过采样频率计算帧数 ---
+    padding_frames_start = int(t_start * fs) + 1
+    padding_frames_end = int(t_end * fs) + 1
+
+    # --- 计算补偿帧数 ---
+    frame_stance_start= int(t_stance_start * fs)
+    frame_stance_end = int(t_stance_end * fs)
 
 
+    print(f"✓ Peak detected: idx={peak_idx}, value={peak_value:.2f}N")
+    print(f"✓ Stance detected: {t_start:.4f} – {t_end:.4f}, frames: {frame_stance_start} – {frame_stance_end}")
+    print(f"✓ Actual stance (without padding): {t_stance_start:.4f} – {t_stance_end:.4f}")
+    print(f"✓ Padding: {padding_frames} frames = {padding_time:.4f}s")
 
-
-
-
-#####################################################???????#############################################################
+    return t_start, t_end, frame_stance_start, frame_stance_end,padding_frames_start,padding_frames_end,t_stance_start, t_stance_end, peak_idx, peak_value
 
 
 

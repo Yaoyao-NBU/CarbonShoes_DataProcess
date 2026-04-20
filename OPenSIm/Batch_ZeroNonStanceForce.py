@@ -2,13 +2,13 @@ import os
 import Data_ProcessFunction as DPF
 import pandas as pd
 
-source_dir = r'G:\Carbon_Plate_Shoes_Data\New_Opensim_Transform\3_try\C3D_File\rename_Final_problem_data'
-target_dir = r'G:\Carbon_Plate_Shoes_Data\New_Opensim_Transform\3_try\C3D_File\Cut_Zero_NonStance_Data_Problem'
-CSVFilname = 'Cut_Recoeds_problem.csv'
+source_dir = r'G:\Carbon_Plate_Shoes_Data\New_Opensim_Transform\3_try\C3D_File\rename_Final'
+target_dir = r'G:\Carbon_Plate_Shoes_Data\New_Opensim_Transform\3_try\C3D_File\Cut_Zero_NonStance_Data01'
+CSVFilname = 'Cut_Recoeds.csv'
 
 fs_trc = 200
 fs_sto = 200
-threshold = 45
+threshold = 40
 fz_pattern = r"2_ground_force_vy"
 records = []
 
