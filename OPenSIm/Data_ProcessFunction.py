@@ -46,6 +46,7 @@ def gaussian_filter_stance_cop(data, window_size=7, sigma=None):
     filtered_data = gaussian_filter1d(data, sigma=sigma, mode='nearest', truncate=3.0)
 
     return filtered_data
+
 #######################################文件处理滤波##############################################
 def filter_trc(input_path, output_path, cutoff=6, fs=200):
     """
@@ -124,6 +125,7 @@ def filter_mot(input_path, output_path, cutoff=50, fs=1000):
 
     print(f"[OK] MOT filtered → {output_path}")
     return  output_path
+
 ##################################################去除不必要的点#####################################################################
 def remove_marker_prefix_trc(input_path, output_path, header_lines_count=6, encoding="utf-8"):
     """
@@ -194,7 +196,6 @@ def remove_marker_prefix_trc(input_path, output_path, header_lines_count=6, enco
 
     print(f"[OK] Marker 前缀已移除并保存：{output_path}")
     return output_path
-
 
 ####################################################力台基线归零###########################################################
 def remove_baseline_force_sto(sto_path, output_path, threshold=20):
@@ -307,8 +308,6 @@ def expand_trc_single_frame(input_path, output_path, duration_sec=4):
     print(f"[OK] TRC 扩充完成 → {output_path}")
     return output_path
 
-
-
 #####################################################获取力台数据中的Stance时间#############################################
 def get_stance_time_from_sto(sto_path, fs=200, fz_pattern=r".*_ground_force_v[yz]$", threshold=20):
     """
@@ -363,7 +362,6 @@ def get_stance_time_from_sto(sto_path, fs=200, fz_pattern=r".*_ground_force_v[yz
 
     print(f"[OK] Stance detected: {t_start:.4f} – {t_end:.4f}, frames: {frame_start} – {frame_end}")
     return t_start, t_end, frame_start, frame_end, t_stance_start, t_stance_end
-
 
 #####################################################截取力台文件#########################################################
 def cut_sto_by_time(sto_path, output_path, t_start, t_end, fs=None, t_stance_start=None, t_stance_end=None):
@@ -455,7 +453,6 @@ def cut_sto_by_time(sto_path, output_path, t_start, t_end, fs=None, t_stance_sta
     print(f"[OK] STO 截取完成 → {output_path}")
     return output_path
 
-
 #####################################################截取Marker文件#######################################################
 def cut_trc_by_time(trc_path, output_path, t_start, t_end, fs=None):
     """
@@ -508,7 +505,6 @@ def cut_trc_by_time(trc_path, output_path, t_start, t_end, fs=None):
 
     print(f"[OK] TRC 截取完成 → {output_path}")
     return output_path
-
 
 #####################################################截取并滤波STO文件中的COP数据#########################################################
 def cut_sto_with_gaussian_filter_cop(sto_path, output_path, t_start, t_end, t_stance_start, t_stance_end,
@@ -685,7 +681,7 @@ def process_copx_outliers(data_dict, distance_threshold=0.3, t_stance_start=None
     copz_median = np.median(copz_stance)
 
     # Step 2: 计算stance阶段每个点到各自中位数的绝对距离
-    copx_distance_to_median = np.abs(copx_stance - copx_median)
+    copx_distance_to_median = np.abs(copx_stance - copx_median) #这里的情况没有考虑Cop为负值的情况！
     copz_distance_to_median = np.abs(copz_stance - copz_median)
 
     # Step 3: 识别异常值：距离超过阈值（0.3米）的点（仅在stance阶段内）
@@ -710,15 +706,6 @@ def process_copx_outliers(data_dict, distance_threshold=0.3, t_stance_start=None
     total_stance_count = len(copx_stance)
     copx_outlier_ratio = copx_outlier_count / total_stance_count * 100 if total_stance_count > 0 else 0
     copz_outlier_ratio = copz_outlier_count / total_stance_count * 100 if total_stance_count > 0 else 0
-
-    print(f"[OK] COPx和COPz异常值处理完成（仅处理真实stance阶段）:")
-    print(f"  - 真实stance时间范围: {t_stance_start:.4f}s - {t_stance_end:.4f}s")
-    print(f"  - 真实stance数据点数: {total_stance_count}")
-    print(f"  - COPx中位数: {copx_median:.6f} m, 异常值: {copx_outlier_count}/{total_stance_count} ({copx_outlier_ratio:.2f}%)")
-    print(f"  - COPz中位数: {copz_median:.6f} m, 异常值: {copz_outlier_count}/{total_stance_count} ({copz_outlier_ratio:.2f}%)")
-    print(f"  - 距离阈值: {distance_threshold:.3f} m")
-    print(f"  - 异常值处理方式: 替换为中位数")
-    print(f"  - padding_frames区域保持归零不变")
 
     return result, {
         'copx_median': copx_median,
@@ -760,7 +747,6 @@ def fix_sto_ground_force_units(sto_path, output_path):
         print(f"[OK] 单位修正完成 → {output_path}")
 
     return output_path
-
 
 #####################################################基于Peak检测Stance时间#############################################
 def get_stance_time_from_sto_with_peak(sto_path, fs=200, fz_pattern=r".*_ground_force_v[yz]$", threshold=20, padding_frames=0):
@@ -853,9 +839,5 @@ def get_stance_time_from_sto_with_peak(sto_path, fs=200, fz_pattern=r".*_ground_
     print(f"[OK] Padding: {padding_frames} frames = {padding_time:.4f}s")
 
     return t_start, t_end, frame_stance_start, frame_stance_end,padding_frames_start,padding_frames_end,t_stance_start, t_stance_end, peak_idx, peak_value
-
-
-
-
 
 #####################################################???????#############################################################
