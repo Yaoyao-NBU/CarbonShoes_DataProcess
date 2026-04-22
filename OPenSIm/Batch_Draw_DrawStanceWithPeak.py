@@ -14,20 +14,23 @@ import re
 # ==========================================
 # 配置参数
 # ==========================================
-source_dir = r'E:\C3D_Data\Data\input'
-output_dir = r'E:\C3D_Data\Data\output\output_plots_with_median02'  # 绘图输出目录
-output_cut_dir = r'E:\C3D_Data\Data\output\cut_sto_with_median02'  # 截取并滤波后的STO文件输出目录
+source_dir = r'E:\Python_Learn\CarbonShoes_DataProcess\OPenSIm\Data\input'
+output_dir = r'E:\Python_Learn\CarbonShoes_DataProcess\OPenSIm\Data\output\output_plots_with_median02'  # 绘图输出目录
+output_cut_dir = r'E:\Python_Learn\CarbonShoes_DataProcess\OPenSIm\Data\output\output_cut_sto_with_median02'  # 截取并滤波后的STO文件输出目录
 
 fs_sto = 200
 
 # Stance 检测参数
-threshold = 25                # 力阈值 (N)
+threshold = 30                # 力阈值 (N)
 fz_pattern = r".*_ground_force_v[yz]$"  # 垂直力列名匹配模式
 padding_frames = 20           # 前后各补充 20 帧
 padding_time = padding_frames / fs_sto  # 补偿时间（秒）
 
 # COPx异常值处理参数
 distance_threshold = 0.1   # COPx距离中位数的绝对距离阈值（米）
+
+# COP高斯滤波参数
+gaussian_window_size = 7   # 高斯滤波窗口大小
 
 # 图像参数
 dpi = 600                     # 图像分辨率
@@ -55,7 +58,7 @@ os.makedirs(output_dir, exist_ok=True)
 os.makedirs(output_cut_dir, exist_ok=True)
 
 print("=" * 60)
-print("Stance 力学数据截取、异常值处理与绘制工具 (2号力台)")
+print("Stance 力学数据截取、异常值处理、高斯滤波与绘制工具 (2号力台)")
 print("=" * 60)
 print(f"源目录: {source_dir}")
 print(f"输出图像目录: {output_dir}")
@@ -63,6 +66,7 @@ print(f"输出截取文件目录: {output_cut_dir}")
 print(f"力阈值: {threshold}N")
 print(f"补偿帧数: {padding_frames} 帧 = {padding_time:.4f}s")
 print(f"COPx距离中位数阈值: {distance_threshold} 米")
+print(f"COP高斯滤波窗口: {gaussian_window_size}")
 print(f"图像分辨率: {dpi} dpi")
 print("=" * 60)
 
@@ -191,6 +195,20 @@ for trial_name, files in trial_data.items():
                 t_stance_end=relative_t_stance_end
             )
 
+            # ----- 对中值补偿后的COPx/COPz进行高斯滤波 -----
+            stance_mask_draw = (processed_data_dict['time'] >= relative_t_stance_start) & \
+                               (processed_data_dict['time'] <= relative_t_stance_end)
+
+            copx_stance_vals = processed_data_dict['COPx'][stance_mask_draw]
+            copz_stance_vals = processed_data_dict['COPz'][stance_mask_draw]
+
+            if len(copx_stance_vals) >= gaussian_window_size:
+                processed_data_dict['COPx'][stance_mask_draw] = DPF.gaussian_filter_stance_cop(
+                    copx_stance_vals, window_size=gaussian_window_size)
+                processed_data_dict['COPz'][stance_mask_draw] = DPF.gaussian_filter_stance_cop(
+                    copz_stance_vals, window_size=gaussian_window_size)
+                print(f"  COP高斯滤波完成（窗口: {gaussian_window_size}）")
+
             # ----- 将处理后的COPx和COPz数据写回文件 -----
             # 重新构建DataFrame
             df_final = df_filtered.copy()
@@ -238,7 +256,7 @@ print("\n开始绘制折线图...")
 # 定义要绘制的变量及其配置（每个trial生成3个独立图像）
 plot_configs = {
     'Fy': {'title': 'Ground Reaction Force - Fy', 'ylabel': 'Mediolateral Force (N)'},
-    'COPx': {'title': 'Center of Pressure - COPx (Outlier Removed)', 'ylabel': 'Anteroposterior Position (m)'},
+    'COPx': {'title': 'Center of Pressure - COPx (Outlier Removed + Gaussian Filtered)', 'ylabel': 'Anteroposterior Position (m)'},
     'COPy': {'title': 'Center of Pressure - COPy', 'ylabel': 'Mediolateral Position (m)'}
 }
 
@@ -294,7 +312,7 @@ for trial_name, files_data in all_trials_processed.items():
     # 为该trial的每个单独文件绘制图像
     for file_data in files_data:
         fig, axes = plt.subplots(3, 1, figsize=(12, 10), sharex=True)
-        fig.suptitle(f"{file_data['name']} - Force Plate 2 (Outlier Removed)", fontsize=16, fontweight='bold')
+        fig.suptitle(f"{file_data['name']} - Force Plate 2 (Outlier Removed + Gaussian Filtered)", fontsize=16, fontweight='bold')
 
         # 绘制三个子图：Fy、COPx、COPz
         for idx, (var_name, config) in enumerate(single_file_configs.items()):
@@ -325,6 +343,6 @@ print(f"成功处理: {processed_count} 个文件")
 print(f"处理失败: {error_count} 个文件")
 print(f"输出图像目录: {output_dir}")
 print(f"输出截取文件目录: {output_cut_dir}")
-print(f"每个trial生成3个独立图像: Fy, COPx(去异常值), COPy")
-print(f"每个单独文件生成1个组合图像: Fy, COPx, COPz (子图)")
+print(f"每个trial生成3个独立图像: Fy, COPx(去异常值+高斯滤波), COPy")
+print(f"每个单独文件生成1个组合图像: Fy, COPx, COPz (子图, 含高斯滤波)")
 print(f"{'=' * 60}")

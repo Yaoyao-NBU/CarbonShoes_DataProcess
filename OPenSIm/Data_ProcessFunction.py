@@ -416,8 +416,8 @@ def cut_sto_by_time(sto_path, output_path, t_start, t_end, fs=None, t_stance_sta
 
         zero_cols = force_cols + cop_cols + torque_cols
 
-        # 将 t_stance_start 之前的补充帧归零
-        padding_mask = (df_cut[time_col] < t_stance_start)
+        # 将 t_stance_start 之前的补充帧归零（包括t_stance_start这一帧）
+        padding_mask = (df_cut[time_col] <= t_stance_start)
         for col in zero_cols:
             if col in df_cut.columns:
                 df_cut.loc[padding_mask, col] = 0
@@ -615,7 +615,7 @@ def cut_sto_with_gaussian_filter_cop(sto_path, output_path, t_start, t_end, t_st
     return output_path
 
 #####################################################COPx异常值处理函数#############################################################
-def process_copx_outliers(data_dict, distance_threshold=0.3, t_stance_start=None, t_stance_end=None):
+def process_copx_outliers(data_dict, distance_threshold=0.1, t_stance_start=None, t_stance_end=None):
     """
     对stance阶段的COPx和COPz数据进行异常值处理：距离中位数超过阈值的点替换为中位数
     只处理真实stance阶段的数据，padding_frames保持归零状态
@@ -626,7 +626,7 @@ def process_copx_outliers(data_dict, distance_threshold=0.3, t_stance_start=None
             - 'COPx': COPx位置序列
             - 'COPy': COPy位置序列（可选）
             - 'COPz': COPz位置序列
-        distance_threshold : 距离中位数的绝对距离阈值（默认0.3米）
+        distance_threshold : 距离中位数的绝对距离阈值（默认0.1米）
         t_stance_start : 真实stance开始时间（不含补偿）
         t_stance_end : 真实stance结束时间（不含补偿）
 
@@ -712,6 +712,98 @@ def process_copx_outliers(data_dict, distance_threshold=0.3, t_stance_start=None
         'copz_median': copz_median,
         'outlier_count': copx_outlier_count + copz_outlier_count,
         'outlier_ratio': (copx_outlier_ratio + copz_outlier_ratio) / 2
+    }
+
+#####################################################COPx/COPz线性趋势异常值填补函数##################################################
+def process_cop_outliers_linear(data_dict, distance_threshold=0.08, jump_threshold=0.03,
+                                 t_stance_start=None, t_stance_end=None):
+    """
+    对stance阶段的COPx和COPz进行异常值检测与线性趋势填补
+
+    双重检测机制:
+      1. 中位数距离检测 — 值偏离中位数超过 distance_threshold 的点
+      2. 帧间跳变检测 — 相邻帧变化超过 jump_threshold 的点
+         （正常COP帧间变化约1-3mm，异常跳变通常>30mm）
+
+    填补策略: 用正常点拟合线性趋势 y = k*t + b，异常点按趋势值填补
+
+    参数:
+        data_dict       : 包含 'time', 'COPx', 'COPz' 键的数据字典
+        distance_threshold : 距中位数的绝对距离阈值（米，默认0.08）
+        jump_threshold  : 帧间跳变阈值（米，默认0.03，即30mm）
+        t_stance_start  : 真实stance开始时间（不含补偿）
+        t_stance_end    : 真实stance结束时间（不含补偿）
+
+    返回:
+        (result_dict, info_dict)
+    """
+    import copy
+    result = copy.deepcopy(data_dict)
+
+    time_data = result['time'].copy()
+    copx_data = result['COPx'].copy()
+    copz_data = result['COPz'].copy()
+
+    # 识别真实stance阶段
+    if t_stance_start is not None and t_stance_end is not None:
+        stance_mask = (time_data >= t_stance_start) & (time_data <= t_stance_end)
+    else:
+        stance_mask = np.ones(len(time_data), dtype=bool)
+
+    copx_stance = copx_data[stance_mask]
+    copz_stance = copz_data[stance_mask]
+
+    if len(copx_stance) == 0:
+        print("[WARNING] 真实stance阶段没有数据，跳过异常值处理")
+        return result, {'copx_outlier_count': 0, 'copz_outlier_count': 0}
+
+    t_stance = time_data[stance_mask]
+
+    for col_name, stance_vals in [('COPx', copx_stance), ('COPz', copz_stance)]:
+        # --- 检测1: 中位数距离检测 ---
+        median_val = np.median(stance_vals)
+        dist_outlier = np.abs(stance_vals - median_val) > distance_threshold
+
+        # --- 检测2: 帧间跳变检测 ---
+        # 计算相邻帧的绝对差值，两端各补False保证长度一致
+        diffs = np.abs(np.diff(stance_vals))
+        jump_outlier = np.zeros(len(stance_vals), dtype=bool)
+        jump_outlier[1:] |= diffs > jump_threshold      # 后帧跳变
+        jump_outlier[:-1] |= diffs > jump_threshold      # 前帧跳变（两端都标记）
+
+        # 合并两种检测结果
+        outlier_mask = dist_outlier | jump_outlier
+        outlier_count = np.sum(outlier_mask)
+        dist_only = np.sum(dist_outlier)
+        jump_only = outlier_count - dist_only  # 仅被跳变检测捕获的数量
+
+        if outlier_count == 0:
+            print(f"  {col_name}: 无异常值")
+            continue
+
+        print(f"  {col_name}: 检测到 {outlier_count} 帧异常"
+              f"（中位数距离: {dist_only}帧, 帧间跳变额外: {jump_only}帧）")
+
+        # --- 用正常点拟合线性趋势 y = k*t + b ---
+        normal_mask = ~outlier_mask
+        if np.sum(normal_mask) < 2:
+            # 正常点不足，退化为中值替换
+            result[col_name][stance_mask] = np.where(outlier_mask, median_val, stance_vals)
+            print(f"  {col_name}: 正常点不足2个，退化为中值替换")
+            continue
+
+        k, b = np.polyfit(t_stance[normal_mask], stance_vals[normal_mask], 1)
+        linear_vals = k * t_stance + b
+
+        # 按线性趋势填补异常值
+        filled_vals = np.where(outlier_mask, linear_vals, stance_vals)
+        result[col_name][stance_mask] = filled_vals
+
+        print(f"  {col_name}: 线性趋势 k={k:.4f}m/s, b={b:.4f}m, 填补 {outlier_count}帧")
+
+    return result, {
+        'copx_outlier_count': int(np.sum(copx_data[stance_mask] != result['COPx'][stance_mask])),
+        'copz_outlier_count': int(np.sum(copz_data[stance_mask] != result['COPz'][stance_mask]))
     }
 
 #####################################################修改力台单位参数#############################################################
