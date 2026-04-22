@@ -14,9 +14,9 @@ import re
 # ==========================================
 # 配置参数
 # ==========================================
-source_dir = r'E:\Python_Learn\CarbonShoes_DataProcess\OPenSIm\Data\input02'
-output_dir = r'E:\Python_Learn\CarbonShoes_DataProcess\OPenSIm\Data\output_plots_with_median02'  # 绘图输出目录
-output_cut_dir = r'E:\Python_Learn\CarbonShoes_DataProcess\OPenSIm\Data\cut_sto_with_median02'  # 截取并滤波后的STO文件输出目录
+source_dir = r'E:\C3D_Data\Data\input'
+output_dir = r'E:\C3D_Data\Data\output\output_plots_with_median02'  # 绘图输出目录
+output_cut_dir = r'E:\C3D_Data\Data\output\cut_sto_with_median02'  # 截取并滤波后的STO文件输出目录
 
 fs_sto = 200
 
@@ -27,7 +27,7 @@ padding_frames = 20           # 前后各补充 20 帧
 padding_time = padding_frames / fs_sto  # 补偿时间（秒）
 
 # COPx异常值处理参数
-distance_threshold = 0.4   # COPx距离中位数的绝对距离阈值（米）
+distance_threshold = 0.1   # COPx距离中位数的绝对距离阈值（米）
 
 # 图像参数
 dpi = 600                     # 图像分辨率
