@@ -150,8 +150,10 @@ def process_c3d(c3d_path, output_dir,
         ch_idx = channels[:, pi].astype(int) - 1
         ch8    = analog_data[ch_idx, :]
 
-        b   = float(origin[0, pi])
-        a   = float(origin[1, pi])
+        # b   = float(origin[0, pi])
+        # a   = float(origin[1, pi])
+        a   = float(origin[0, pi])
+        b   = float(origin[1, pi])
         az0 = float(origin[2, pi])
 
         t2 = compute_kistler_channel8(ch8, a, b, az0)

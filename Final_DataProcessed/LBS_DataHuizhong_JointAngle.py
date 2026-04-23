@@ -4,8 +4,8 @@ import fnmatch
 
 # ===================== 配置区域 (修改这里) =====================
 # 1. 基础路径 (去掉具体的人群文件夹，只保留共同的父目录)
-BASE_INPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\Interpolte'
-BASE_OUTPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\huizongFile_Interpolte'
+BASE_INPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_data'
+BASE_OUTPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_huizhong_data'
 
 # 2. 批量处理列表
 RUNNER_TYPES = ['Amateur_Runner', 'Elite_Runner']  # 受试者人群

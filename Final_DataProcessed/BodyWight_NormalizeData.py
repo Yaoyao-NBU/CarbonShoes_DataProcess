@@ -40,24 +40,24 @@ def batch_normalize_by_weight(data_path, weight_info_path, output_path, gravity=
 
 
 # ================= 配置区 =================
-input_root = r"G:\xiangrongjie_PHD\BodyWeight\out"
-output_root = r"G:\xiangrongjie_PHD\BodyWeight\ootput"  # 建议输出到新文件夹
-weight_file = r"G:\xiangrongjie_PHD\BodyWeight\BodayWeight.csv"
+input_root = r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_huizhong_data"
+output_root = r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\interpolte_huizhong_noemalization"  # 建议输出到新文件夹
+weight_file = r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\baseline_01.csv"
 
 # --- 修改点1：在列表中加入功率文件 ---
 target_filenames = [
     # 原有力矩/力文件 (BW)
-    #"AT_gasmed_r.csv", "AT_gaslat_r.csv", "AT_soleus_r.csv",
-    #'ID_hip_flexion_r_moment.csv', 'ID_hip_adduction_r_moment.csv', 'ID_hip_rotation_r_moment.csv',
-    #'ID_knee_angle_r_moment.csv', 'ID_ankle_angle_r_moment.csv', 'ID_subtalar_angle_r_moment.csv',
-    #'ID_mtp_angle_r_moment.csv',
-    #'ID_pelvis_tilt_moment.csv', 'ID_pelvis_list_moment.csv', 'ID_pelvis_rotation_moment.csv',
-    #'ID_pelvis_tx_force.csv', 'ID_pelvis_ty_force.csv', 'ID_pelvis_tz_force.csv',
-    #'ID_lumbar_extension_moment.csv', 'ID_lumbar_bending_moment.csv', 'ID_lumbar_rotation_moment.csv',
+    "AT_gasmed_r.csv", "AT_gaslat_r.csv", "AT_soleus_r.csv",
+    'ID_hip_flexion_r_moment.csv', 'ID_hip_adduction_r_moment.csv', 'ID_hip_rotation_r_moment.csv',
+    'ID_knee_angle_r_moment.csv', 'ID_ankle_angle_r_moment.csv', 'ID_subtalar_angle_r_moment.csv',
+    'ID_mtp_angle_r_moment.csv',
+    'ID_pelvis_tilt_moment.csv', 'ID_pelvis_list_moment.csv', 'ID_pelvis_rotation_moment.csv',
+    'ID_pelvis_tx_force.csv', 'ID_pelvis_ty_force.csv', 'ID_pelvis_tz_force.csv',
+    'ID_lumbar_extension_moment.csv', 'ID_lumbar_bending_moment.csv', 'ID_lumbar_rotation_moment.csv',
 
     # 新增功率文件 (W/kg)
-    "AT_Total_Force_r.csv",
-    "ID_knee_angle_l_moment.csv",
+    # "AT_Total_Force_r.csv",
+    # "ID_knee_angle_l_moment.csv",
 ]
 # ==========================================
 

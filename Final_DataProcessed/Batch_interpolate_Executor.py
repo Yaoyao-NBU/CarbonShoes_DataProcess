@@ -5,8 +5,8 @@ import time
 
 
 def main():
-    InputBase = r'G:\Carbon_Plate_Shoes_Data\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\Raw_Data'
-    OutputBase = r'G:\Carbon_Plate_Shoes_Data\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\WorkAndPower\Raw_data_Interpalte'
+    InputBase = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Raw_data'
+    OutputBase = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_data'
 
 
     tasks = []

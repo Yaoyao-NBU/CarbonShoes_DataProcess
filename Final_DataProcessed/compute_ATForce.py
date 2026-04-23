@@ -2,7 +2,7 @@ import pandas as pd
 import Function_FinalProcessed as FFP
 import os
 
-root_dir = r'G:\Carbon_Plate_Shoes_Data\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\huizongFile_Interpolte'
+root_dir = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_huizhong_data'
 
 for subdir, dirs, files in os.walk(root_dir):
     # 检查当前文件夹是否包含这三个目标文件

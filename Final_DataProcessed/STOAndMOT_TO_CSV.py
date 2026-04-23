@@ -27,8 +27,8 @@ def process_single_file(root, fname, source_dir, csv_output_dir):
 
 
 def main():
-    source_dir = r"G:\CSV_File\Data\Elite_Runner"
-    csv_output_dir = r"G:\CSV_File\CSV_Data"
+    source_dir = r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Redo_DataSto_V4_ForPython_transform"
+    csv_output_dir = r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Redo_DataSto_V4_ForPython_transform_CSV"
 
     # 1. 收集所有待处理的任务清单
     tasks = []
