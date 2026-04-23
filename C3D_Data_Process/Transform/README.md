@@ -76,11 +76,14 @@ OpenSim Z = -Lab Y     (向右)
 | 文件名 | 说明 |
 |--------|------|
 | **`c3d_to_opensim.py`** | 主转换程序，处理 8通道 Kistler 力台 C3D 文件 |
+| **`c3d_to_opensim_v2.py`** | **V2** 峰值检测stance + COP斜率纠正转换程序 |
 | **`c3d6_to_opensim.py`** | 6通道力数据 C3D 文件转换程序 |
 | **`batch_process.py`** | 批量处理工具，支持并行处理和递归搜索 |
+| **`batch_process_v2.py`** | **V2** 批量处理工具（峰值stance + COP纠正 + 绝对路径配置） |
 | **`batch_c3d6_to_opensim.py`** | 6通道 C3D 文件批量处理工具 |
-| **`transform_utils.py`** | 核心工具函数模块（坐标变换、滤波、文件I/O等） |
+| **`transform_utils.py`** | 核心工具函数模块（坐标变换、滤波、文件I/O、stance检测、COP纠正等） |
 | **`draw_picture_check_grf.py`** | 数据可视化工具，绘制 COP 和自由力矩曲线 |
+| **`draw_check_v2.py`** | **V2** 数据可视化检查工具（stance检测图 + COP对比图 + 叠加图） |
 | **`run_demo.py`** | 演示脚本，单文件转换示例 |
 
 ---
@@ -399,6 +402,108 @@ plot_grf_data(all_data, 'output/plots/', show_plot=False)
 - 数据处理和滤波函数
 - 步态阶段截取算法
 - 坐标系旋转函数
+
+---
+
+## V2 版本说明（Peak-based Stance Detection + COP Correction）
+
+V2 版本对 stance 检测和 COP 处理做了重要改进，生成的文件与 V1 完全独立，方便对比。
+
+### V1 vs V2 核心差异
+
+| 特性 | V1 | V2 |
+| ---- | --- | --- |
+| Stance 检测 | 阈值法：找第一个/最后一个超阈值的帧 | 峰值法：从峰值向两侧遍历找 load/off |
+| Padding 归零 | 仅归零 COP 和力矩 | 全面归零：力 + COP + 力矩均归零 |
+| COP 纠正 | 无 | 斜率纠正 + 异常检测 |
+| 输入方式 | 交互式输入路径 | 绝对路径配置（修改脚本顶部即可） |
+
+### V2 Stance 检测算法
+
+```text
+1. 找到垂直力 (Fy) 的最大值 (Peak)
+2. 从 Peak 向左遍历 → 第一个 < threshold 的帧 = load (heel-strike)
+3. 从 Peak 向右遍历 → 第一个 < threshold 的帧 = off (toe-off)
+4. 在 load/off 基础上加 padding 帧
+5. padding 区域的力数据手动归零
+```
+
+### V2 COP 纠正算法
+
+```text
+1. 检测异常帧:
+   - 力 < 阈值但 COP 非零 → 异常
+   - 帧间 COP 跳变 > jump_threshold → 异常
+2. 斜率纠正:
+   - 取 stance 中间部分 (默认 30%~70%)，线性拟合得通用斜率 k
+   - 从中间向两端遍历，变化率 > rate_multiplier * |k*dt| 的帧视为异常
+   - 异常帧用 上一正常值 + k*dt 替换
+3. 非 stance 阶段 COP 置零
+```
+
+### V2 新增函数（transform_utils.py）
+
+| 函数名 | 说明 |
+| ---- | ---- |
+| `detect_stance_phase_from_peak()` | 基于峰值的 stance 检测，返回 load/off/peak 信息 |
+| `detect_cop_anomalies()` | COP 异常帧检测（力阈值 + 帧间跳变双重机制） |
+| `correct_cop_slope()` | 基于中间部分斜率的 COP 纠正 |
+
+### V2 使用方法
+
+#### 批量处理
+
+编辑 `batch_process_v2.py` 顶部配置区域：
+
+```python
+INPUT_ROOT  = r"E:\your\data\input"
+OUTPUT_ROOT = r"E:\your\data\output_v2"
+
+PROCESS_PARAMS = {
+    'stance_threshold':    30.0,   # 力阈值 (N)
+    'stance_pad_frames':   25,     # 补偿帧数
+    'cop_middle_ratio':    0.3,    # COP斜率纠正中间占比
+    'cop_rate_multiplier': 2.0,    # 异常变化率倍数
+    'cop_jump_threshold':  0.03,   # COP帧间跳变阈值 (m)
+}
+```
+
+然后运行：
+
+```bash
+python batch_process_v2.py
+```
+
+#### 单文件转换
+
+```bash
+python c3d_to_opensim_v2.py <c3d_file> [output_dir]
+```
+
+#### 可视化检查
+
+编辑 `draw_check_v2.py` 顶部配置区域，然后运行：
+
+```bash
+python draw_check_v2.py
+```
+
+生成的图表包括：
+
+- `*_stance.png` — Stance 检测可视化（标注 Peak/Load/Off 位置 + padding 区域）
+- `*_combined.png` — Fy/COPx/COPz 组合图
+- `*_compare.png` — COP 原始 vs 纠正后对比图
+- 叠加折线图（多文件叠加对比）
+
+### V2 参数说明
+
+| 参数 | 默认值 | 说明 |
+| ---- | ------ | ---- |
+| `stance_threshold` | 30.0 N | stance 检测力阈值 |
+| `stance_pad_frames` | 25 | 前后补偿帧数 |
+| `cop_middle_ratio` | 0.3 | COP 斜率纠正中间部分占比 |
+| `cop_rate_multiplier` | 2.0 | COP 变化率异常判定倍数 |
+| `cop_jump_threshold` | 0.03 m | COP 帧间跳变阈值 |
 
 ---
 
