@@ -932,4 +932,110 @@ def get_stance_time_from_sto_with_peak(sto_path, fs=200, fz_pattern=r".*_ground_
 
     return t_start, t_end, frame_stance_start, frame_stance_end,padding_frames_start,padding_frames_end,t_stance_start, t_stance_end, peak_idx, peak_value
 
+#####################################################基于斜率的COP异常值纠正函数#########################################################
+def process_cop_outliers_slope(data_dict, middle_ratio=0.3, rate_multiplier=2.0,
+                                t_stance_start=None, t_stance_end=None):
+    """
+    基于stance中间部分斜率的COPx/COPz异常值纠正
+
+    原理:
+      1. 取stance中间部分（如30%~70%），线性拟合得到通用斜率k
+      2. 从中间部分向两端遍历，若某帧变化率 > rate_multiplier * k，视为异常
+      3. 异常帧用 上一正常值 + k * dt 替换（保持线性趋势连续性）
+      4. padding帧不处理
+
+    参数:
+        data_dict       : 包含 'time', 'COPx', 'COPz' 键的数据字典
+        middle_ratio    : 中间部分占比（默认0.3，即取中间30%~70%区间）
+        rate_multiplier : 变化率异常判定倍数（默认2.0，即变化率超过通用斜率2倍为异常）
+        t_stance_start  : 真实stance开始时间（不含补偿）
+        t_stance_end    : 真实stance结束时间（不含补偿）
+
+    返回:
+        (result_dict, info_dict)
+        info_dict包含: copx_slope, copz_slope, copx_outlier_count, copz_outlier_count
+    """
+    import copy
+    result = copy.deepcopy(data_dict)
+
+    time_data = result['time'].copy()
+    copx_data = result['COPx'].copy()
+    copz_data = result['COPz'].copy()
+
+    # 识别真实stance阶段（不含padding）
+    if t_stance_start is not None and t_stance_end is not None:
+        stance_mask = (time_data >= t_stance_start) & (time_data <= t_stance_end)
+    else:
+        stance_mask = np.ones(len(time_data), dtype=bool)
+
+    # 获取stance阶段的索引和时间
+    stance_indices = np.where(stance_mask)[0]
+    t_stance = time_data[stance_mask]
+    copx_stance = copx_data[stance_mask].copy()
+    copz_stance = copz_data[stance_mask].copy()
+
+    n_stance = len(stance_indices)
+    info = {'copx_slope': 0.0, 'copz_slope': 0.0,
+            'copx_outlier_count': 0, 'copz_outlier_count': 0}
+
+    if n_stance < 10:
+        print("[WARNING] stance帧数过少，跳过斜率纠正")
+        return result, info
+
+    # 计算中间部分的范围
+    margin = int(n_stance * middle_ratio / 2)
+    mid_start = margin
+    mid_end = n_stance - margin
+
+    if mid_end - mid_start < 5:
+        print("[WARNING] 中间部分帧数不足，跳过斜率纠正")
+        return result, info
+
+    # 中间部分索引
+    mid_indices = np.arange(mid_start, mid_end)
+    t_mid = t_stance[mid_indices]
+
+    # 对COPx和COPz分别处理
+    for col_name, stance_vals in [('COPx', copx_stance), ('COPz', copz_stance)]:
+        # Step1: 用中间部分拟合线性趋势，获取通用斜率k
+        mid_vals = stance_vals[mid_indices]
+        k, b = np.polyfit(t_mid, mid_vals, 1)
+
+        print(f"  {col_name}: 中间部分斜率 k={k:.6f} m/s")
+
+        # Step2: 从中间向两端遍历，检测异常值
+        corrected = stance_vals.copy()
+
+        # 计算帧间时间间隔（假设等间隔，取中位数）
+        dt = np.median(np.diff(t_stance)) if len(t_stance) > 1 else 1.0 / 200
+        # 通用帧间变化量
+        expected_delta = abs(k * dt)
+        # 异常阈值：变化率超过通用斜率的rate_multiplier倍
+        outlier_delta = expected_delta * rate_multiplier
+
+        # 向左遍历（从中间部分左边界向stance起始）
+        for i in range(mid_start - 1, -1, -1):
+            actual_delta = abs(corrected[i] - corrected[i + 1])
+            if actual_delta > outlier_delta:
+                # 异常帧：用右邻值 - k*dt 修正（向左递推）
+                corrected[i] = corrected[i + 1] - k * dt
+                info[f'{col_name.lower()}_outlier_count'] += 1
+
+        # 向右遍历（从中间部分右边界向stance结束）
+        for i in range(mid_end, n_stance):
+            actual_delta = abs(corrected[i] - corrected[i - 1])
+            if actual_delta > outlier_delta:
+                # 异常帧：用左邻值 + k*dt 修正（向右递推）
+                corrected[i] = corrected[i - 1] + k * dt
+                info[f'{col_name.lower()}_outlier_count'] += 1
+
+        # Step3: 写回结果
+        result[col_name][stance_mask] = corrected
+        info[f'{col_name.lower()}_slope'] = k
+
+        count = info[f'{col_name.lower()}_outlier_count']
+        print(f"  {col_name}: 纠正 {count} 帧异常值")
+
+    return result, info
+
 #####################################################???????#############################################################
