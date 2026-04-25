@@ -5,10 +5,10 @@ import re
 # ===================== 1. 基础配置区域 (Configuration) =====================
 # 输入路径：存放所有未插值平均结果的根目录
 # 程序会自动递归查找这个目录下的所有子文件夹
-INPUT_ROOT_DIR = r'G:\Carbon_Plate_Shoes_Data\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\Result_Average_UnInterpolte'
+INPUT_ROOT_DIR = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\uninterpolte\uninterpolte_average_data_normalization'
 
 # 输出路径：最终生成的汇总表格存放位置
-OUTPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\Summary_Statistics_UnInterpolte'
+OUTPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\uninterpolte\Characteristic_Value\Load_JointAngle_Value'
 
 # 定义受试者人群 (Groups) 和 刚度条件 (Stiffness)
 # 程序会根据路径中是否包含这些关键词来判断文件属于哪一组

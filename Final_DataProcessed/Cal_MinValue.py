@@ -24,10 +24,10 @@ import re           # 正则表达式，用于从字符串中提取特定模式
 
 # 输入目录: 存放原始CSV数据的根文件夹
 # 该文件夹下应包含按"人群/刚度"组织的子文件夹结构
-INPUT_ROOT_DIR = r'G:\Carbon_Plate_Shoes_Data\STO-Data_Processed\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\Result_Average_UnInterpolte'
+INPUT_ROOT_DIR = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\uninterpolte\uninterpolte_average_data_normalization'
 
 # 输出目录: 存放计算结果的文件夹
-OUTPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\STO-Data_Processed\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\Summary_Statistics_UnInterpolte\MinValue'
+OUTPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\uninterpolte\Characteristic_Value\Min_Value'
 
 # 人群分类列表 - 脚本会查找路径中包含这些关键字的文件夹
 GROUPS = ['Amateur_Runner',   # 业余跑者

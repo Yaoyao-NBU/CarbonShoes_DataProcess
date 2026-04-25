@@ -8,9 +8,9 @@ def batch_normalize_by_weight(data_path, weight_info_path, output_path, gravity=
     try:
         weight_df = pd.read_csv(weight_info_path)
         # 确保体重表ID是字符串且无空格
-        weight_df['People'] = weight_df['People'].astype(str).str.strip()
+        weight_df['people'] = weight_df['people'].astype(str).str.strip()
         # 生成体重查询字典
-        weight_lookup = weight_df.set_index('People')['Weight'].to_dict()
+        weight_lookup = weight_df.set_index('people')['weight'].to_dict()
 
         data_df = pd.read_csv(data_path)
         normalized_df = data_df.copy()
@@ -40,8 +40,8 @@ def batch_normalize_by_weight(data_path, weight_info_path, output_path, gravity=
 
 
 # ================= 配置区 =================
-input_root = r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_huizhong_data"
-output_root = r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\interpolte_huizhong_noemalization"  # 建议输出到新文件夹
+input_root = r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\uninterpolte\uninterpolte_huizhong_data_normalization"
+output_root = r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\uninterpolte\uninterpolte_huizhong_data_normalization"  # 建议输出到新文件夹
 weight_file = r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\baseline_01.csv"
 
 # --- 修改点1：在列表中加入功率文件 ---

@@ -129,13 +129,13 @@ def spm_integrated_plot(file_list, factor_A_levels, factor_B_levels,
     # 使用渐变色区分不同刚度水平：浅→深
     # Group1 (Amateur): 红色系渐变
     # Group2 (Elite): 绿色系渐变
-    line_colors = ['#FF9999', '#FF3333', '#990000',  # Group1: AM-LS, AM-Ms, AM-Hs
-                   '#99FF99', '#33CC33', '#006600']  # Group2: ET-Ls, ET-Ms, ET-Hs
+    line_colors = ['#FF9999', '#FF3333', '#990000',  # Group1: AM-LS, AM-MS, AM-HS
+                   '#99FF99', '#33CC33', '#006600']  # Group2: ET-LS, ET-MS, ET-HS
 
     # 【图例说明】：此处定义的labels用于图例显示
     # AM = Amateur (业余), ET = Elite (精英)
     # LS = Low Stiffness (低刚度), Ms = Medium (中), Hs = High (高)
-    labels = ["AM-LS", "AM-Ms", "AM-Hs", "ET-Ls", "ET-Ms", "ET-Hs"]
+    labels = ["AM-LS", "AM-MS", "AM-HS", "ET-LS", "ET-MS", "ET-HS"]
 
     # --- 绘制均值曲线和标准差填充 ---
     # x轴：步态周期百分比（0-100%）
@@ -236,10 +236,10 @@ def spm_integrated_plot(file_list, factor_A_levels, factor_B_levels,
     # 需要图例时，再把 # 删掉即可。
     
     # 1. 绘制图例：loc='upper right'为右上角，frameon=False去掉边框，fontsize设置字号
-    #leg = ax.legend(loc='upper right', frameon=False, fontsize=18)
+    leg = ax.legend(loc='upper right', frameon=False, fontsize=16)
     # 2. 遍历图例中的文字，将其设置为加粗
-    #for text in leg.get_texts():
-    #    text.set_fontweight('bold')
+    for text in leg.get_texts():
+        text.set_fontweight('bold')
         
     # ==================== 【图例控制开关 结束】 ====================
 
@@ -323,7 +323,7 @@ if __name__ == "__main__":
     # 🎯 2. 定义图片保存位置和名称
     # SAVE_FILE_PATH: 输出图片的完整路径（自动使用METRIC_NAME作为文件名）
     SAVE_FILE_PATH = os.path.join(
-        r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_data\SPM_Picture\AT_Force\no_Label",
+        r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_data\SPM_Picture\AT_Force\Label",
         f"{METRIC_NAME}.png"
     )
 

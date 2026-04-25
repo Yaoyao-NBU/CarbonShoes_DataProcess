@@ -5,8 +5,8 @@ import re
 from scipy.integrate import trapezoid
 
 # ===================== 1. 基础配置区域 =====================
-INPUT_ROOT_DIR = r'G:\Carbon_Plate_Shoes_Data\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\Result_Average_UnInterpolte'
-OUTPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\Summary_Statistics_UnInterpolte\Impulse_Value'
+INPUT_ROOT_DIR = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\uninterpolte\uninterpolte_average_data_normalization'
+OUTPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\uninterpolte\Characteristic_Value\Impulse_Value'
 
 GROUPS = ['Amateur_Runner', 'Elite_Runner']
 STIFFNESSES = ['T1', 'T2', 'T3']

@@ -9,10 +9,10 @@ import fnmatch
 # 假设结构: .../WorkAndPower/Moment_AngleVel/Amateur_Runner/T1/Joint_Velocity
 #          .../WorkAndPower/Moment_AngleVel/Amateur_Runner/T1/Joint_moment
 # 注意：这里请填入包含 Amateur_Runner 和 Elite_Runner 的那个【根目录】
-BASE_INPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\WorkAndPower\Moment_AngleVel\interpalte'
+BASE_INPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\uninterpolte\uninterpolte_average_data_normalization'
 
 # 2. 基础输出路径
-BASE_OUTPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\WorkAndPower\Moment_AngleVel\interpalte'
+BASE_OUTPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\uninterpolte\Characteristic_Value\power_work'
 
 # 3. 循环列表
 RUNNER_TYPES = ['Amateur_Runner', 'Elite_Runner']

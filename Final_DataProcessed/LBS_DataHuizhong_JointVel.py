@@ -4,9 +4,9 @@ import fnmatch
 
 # ===================== 配置区域 (修改这里) =====================
 # 1. 基础路径 (Raw_Data 文件夹路径)
-BASE_INPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_data'
+BASE_INPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Raw_data'
 # 输出路径 (保存汇总后的速度文件)
-BASE_OUTPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_huizhong_data'
+BASE_OUTPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\uninterpolte\uninterpolte_huizhong_data'
 
 # 2. 批量处理列表
 RUNNER_TYPES = ['Amateur_Runner', 'Elite_Runner']
