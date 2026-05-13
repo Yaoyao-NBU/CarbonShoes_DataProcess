@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"D:/Anaconda/envs/opensim452/python.exe\" \"Draw_Picture/Draw_BarPicture_PostTest_InteractionFix.py\")"
+    ]
+  }
+}

@@ -135,7 +135,7 @@ def spm_integrated_plot(file_list, factor_A_levels, factor_B_levels,
     # 【图例说明】：此处定义的labels用于图例显示
     # AM = Amateur (业余), ET = Elite (精英)
     # LS = Low Stiffness (低刚度), Ms = Medium (中), Hs = High (高)
-    labels = ["Novice-LS", "Novice-MS", "Novice-HS", "Experienced-LS", "Experienced-MS", "Experienced-HS"]
+    labels = ["AM-LS", "AM-MS", "AM-HS", "ET-LS", "ET-MS", "ET-HS"]
 
     # --- 绘制均值曲线和标准差填充 ---
     # x轴：步态周期百分比（0-100%）
@@ -315,15 +315,15 @@ if __name__ == "__main__":
     BASE_DIR = r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_data\Interpolte_Average"
     # DATA_TYPE_FOLDER: 数据类型子文件夹名称
     # 可选值: "Joint_angle"(关节角度), "Moment"(力矩), "AT_Force"(肌腱力), "GRF"(地面反作用力)等
-    DATA_TYPE_FOLDER = "Joint_angle"
+    DATA_TYPE_FOLDER = "Joint_moment"
     # METRIC_NAME: 具体的指标名称（对应CSV文件名，不含扩展名）
     # 示例: "IK_ankle_angle_r"(右踝角度), "IK_knee_angle_l"(左膝角度), "AT_Total_Force_r"(右踝总肌腱力)
-    METRIC_NAME = "IK_hip_adduction_r"
+    METRIC_NAME = "ID_knee_angle_r_moment"
 
     # 🎯 2. 定义图片保存位置和名称
     # SAVE_FILE_PATH: 输出图片的完整路径（自动使用METRIC_NAME作为文件名）
     SAVE_FILE_PATH = os.path.join(
-        r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_data\SPM_Picture\Paper_Picture\joint_Paper_Picture",
+        r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_data\SPM_Picture\Paper_Picture\Moment_paper_Picture",
         f"{METRIC_NAME}.png"
     )
 
@@ -334,7 +334,7 @@ if __name__ == "__main__":
     MY_X_LABEL = "Stance (%)"
     # MY_Y_LABEL: Y轴标签（根据分析指标自定义，需包含单位和方向）
     # 示例: "Right Ankle Angle (°)", "Right Knee Moment (N·m/kg)", "Force (Body Weight, BW)"
-    MY_Y_LABEL = "Right Hip Fron.Angle(°)"
+    MY_Y_LABEL = "Right Knee Sagit.Moment(BW)"
 
     # 🎯 4. 自动拼接 6 个文件的绝对路径 (从此不用再手敲了！)
     # 文件路径结构说明：

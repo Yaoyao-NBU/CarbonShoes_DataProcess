@@ -63,7 +63,7 @@ def batch_process_with_walk(input_root, output_root):
 
 
 # --- 使用设置 ---
-input_path = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\uninterpolte\uninterpolte_huizhong_data_normalization'  # 替换为你的源数据路径
-output_path = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\uninterpolte\uninterpolte_average_data_normalization'  # 替换为你的输出路径
+input_path = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_data\interpolte_huizhong_noemalization'  # 替换为你的源数据路径
+output_path = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_data\Interpolte_Average'  # 替换为你的输出路径
 
 batch_process_with_walk(input_path, output_path)

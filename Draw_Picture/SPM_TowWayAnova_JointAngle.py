@@ -116,8 +116,8 @@ def spm_integrated_plot(file_list, factor_A_levels, factor_B_levels,
 # ================= 执行入口：批量处理逻辑 =================
 if __name__ == "__main__":
     # 1. 路径设置
-    base_dir = r"G:\Carbon_Plate_Shoes_Data\STO-Data_Processed\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\Result_Average"
-    save_dir = r"G:\Carbon_Plate_Shoes_Data\STO-Data_Processed\Carbon_Fiber_Shoes_DataProcessed\Composeite Image\SPM_Picture"
+    base_dir = r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_data\Interpolte_Average"
+    save_dir = r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_data\SPM_Picture\Test_picture\joint_angle"
 
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)

@@ -7,11 +7,11 @@ import numpy as np
 # ==========================================
 # 1. 设置配置 (请在这里指定您的单个文件)
 # ==========================================
-TARGET_FILE = r'G:\Carbon_Plate_Shoes_Data\STO-Data_Processed\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\Summary_Statistics_UnInterpolte\MinValue\Summary_Min_IK_hip_adduction_r.csv'
-OUTPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\STO-Data_Processed\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\Summary_Statistics_UnInterpolte\MinValue\Single_File_Stats_Result'
+TARGET_FILE = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\uninterpolte\Characteristic_Value\Min_Value\Summary_Min_IK_hip_rotation_r.csv'
+OUTPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\uninterpolte\Characteristic_Value\Min_Value\bar_plots'
 
 # 🎯 自定义您的图表 Y 轴标签
-Y_AXIS_LABEL = 'Min R Hip.Add (°)'
+Y_AXIS_LABEL = 'Max R Hip ER.Angle(°)'  # <- 请修改为您想要的标签文本
 
 
 # ==========================================

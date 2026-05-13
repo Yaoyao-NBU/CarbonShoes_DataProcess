@@ -323,7 +323,7 @@ if __name__ == "__main__":
     # 🎯 2. 定义图片保存位置和名称
     # SAVE_FILE_PATH: 输出图片的完整路径（自动使用METRIC_NAME作为文件名）
     SAVE_FILE_PATH = os.path.join(
-        r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_data\SPM_Picture\AT_Force\no_Label",
+        r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_data\SPM_Picture\Paper_Picture\Moment_paper_Picture",
         f"{METRIC_NAME}.png"
     )
 
@@ -334,7 +334,7 @@ if __name__ == "__main__":
     MY_X_LABEL = "Stance (%)"
     # MY_Y_LABEL: Y轴标签（根据分析指标自定义，需包含单位和方向）
     # 示例: "Right Ankle Angle (°)", "Right Knee Moment (N·m/kg)", "Force (Body Weight, BW)"
-    MY_Y_LABEL = "Achilles Tendon Force(BW)"
+    MY_Y_LABEL = "AT Force(BW)"
 
     # 🎯 4. 自动拼接 6 个文件的绝对路径 (从此不用再手敲了！)
     # 文件路径结构说明：

@@ -40,14 +40,14 @@ def batch_normalize_by_weight(data_path, weight_info_path, output_path, gravity=
 
 
 # ================= 配置区 =================
-input_root = r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\uninterpolte\uninterpolte_huizhong_data_normalization"
-output_root = r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\uninterpolte\uninterpolte_huizhong_data_normalization"  # 建议输出到新文件夹
+input_root = r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_data\interpolte_huizhong_noemalization"
+output_root = r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_data\interpolte_huizhong_noemalization"  # 建议输出到新文件夹
 weight_file = r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\baseline_01.csv"
 
 # --- 修改点1：在列表中加入功率文件 ---
 target_filenames = [
     # 原有力矩/力文件 (BW)
-    "AT_gasmed_r.csv", "AT_gaslat_r.csv", "AT_soleus_r.csv",
+    "AT_gasmed_r.csv", "AT_gaslat_r.csv", "AT_soleus_r.csv","AT_Total_Force_r.csv",
     'ID_hip_flexion_r_moment.csv', 'ID_hip_adduction_r_moment.csv', 'ID_hip_rotation_r_moment.csv',
     'ID_knee_angle_r_moment.csv', 'ID_ankle_angle_r_moment.csv', 'ID_subtalar_angle_r_moment.csv',
     'ID_mtp_angle_r_moment.csv',

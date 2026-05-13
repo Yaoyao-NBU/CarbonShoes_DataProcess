@@ -7,7 +7,7 @@ import os
 # 1. 设置配置
 # ==========================================
 # 输入路径
-input_folder = r'G:\Carbon_Plate_Shoes_Data\STO-Data_Processed\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\Summary_Statistics_UnInterpolte\MinValue'
+input_folder = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\uninterpolte\Characteristic_Value\Range_Value'
 
 # 结果保存文件夹
 output_folder_name = 'Stats_Results_With_Mean_SD'

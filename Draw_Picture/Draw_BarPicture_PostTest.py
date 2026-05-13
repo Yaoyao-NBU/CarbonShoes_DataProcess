@@ -8,13 +8,13 @@ import numpy as np
 # 1. 设置配置 (请在这里指定您的单个文件)
 # ==========================================
 # 🎯 直接写死您想处理的那个单文件路径 (注意加上 .csv 后缀)
-TARGET_FILE = r'G:\Carbon_Plate_Shoes_Data\STO-Data_Processed\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\Summary_Statistics_UnInterpolte\MaX_Value\Summary_Max_IK_hip_rotation_r.csv'
+TARGET_FILE = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\uninterpolte\Characteristic_Value\Range_Value\Summary_Range_IK_hip_rotation_r.csv'
 
 # 结果保存的文件夹
-OUTPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\STO-Data_Processed\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\Summary_Statistics_UnInterpolte\MaX_Value\Single_File_Stats_Result01'
+OUTPUT_DIR = r'G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\uninterpolte\Characteristic_Value\Range_Value\bar_plots'
 
 # 🎯 新增：在这里自定义您的图表 Y 轴标签！(例如：'Peak Ankle Angle (°)', 'Force (BW)')
-Y_AXIS_LABEL = 'Max R Hip.Rot (°)'
+Y_AXIS_LABEL = 'Rom R Hip Trans.Angle(°)'  # <- 请修改为您想要的标签文本
 
 
 # ==========================================

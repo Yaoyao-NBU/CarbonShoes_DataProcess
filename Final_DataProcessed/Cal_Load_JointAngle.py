@@ -103,9 +103,9 @@ def process_single_feature(filename, file_info_list, output_path):
                     df = pd.read_csv(file_path)
                     if df.empty: continue
 
-                    # 2. 提取特征值：这里取的是第1行（索引0），也就是落地时刻
-                    # 这一行通常包含了该次实验所有 Trial 的落地数值
-                    touchdown_series = df.iloc[0]
+                    # 2. 提取特征值：取第21行（索引20），即落地时刻
+                    # 原始数据在stance前后各补充了20帧作为上下文，因此第21帧才是真正的落地时刻
+                    touchdown_series = df.iloc[20]
 
                     # 3. 提取表头中的受试者ID (S1, S2...)
                     subjects = [get_subject_id(col) for col in touchdown_series.index]

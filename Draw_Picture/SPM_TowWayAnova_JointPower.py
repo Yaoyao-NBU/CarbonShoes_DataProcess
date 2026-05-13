@@ -152,8 +152,8 @@ def spm_integrated_plot(file_list, factor_A_levels, factor_B_levels,
 if __name__ == "__main__":
     # 1. 路径设置 (指向归一化后的功率数据文件夹)
     # 请确认这里是您存放 "Time_Series_Power_..." 文件（且已插值到101点）的根目录
-    base_dir = r"G:\Carbon_Plate_Shoes_Data\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\Result_Average"
-    save_dir = r"G:\Carbon_Plate_Shoes_Data\Carbon_Fiber_Shoes_DataProcessed\Speed_Spilt\High_Speed\Draw_Picture_data\Picture\Power_Pictures"
+    base_dir = r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_data\Interpolte_Average"
+    save_dir = r"G:\Carbon_Plate_Shoes_Data\STO_ForDeepLearning\Data_CSV_Split\High_Speed\Interpolte_data\SPM_Picture\Test_picture\joint_power"
 
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
